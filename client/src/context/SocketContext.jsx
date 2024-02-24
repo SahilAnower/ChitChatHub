@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useAuthContext } from "./AuthContext";
 import io from "socket.io-client";
+import { VITE_SOCKET_URL } from "../globals";
 
 export const SocketContext = createContext();
 
@@ -15,7 +16,7 @@ export const SocketContextProvider = ({ children }) => {
 
   useEffect(() => {
     if (authUser) {
-      const socket = io("https://chitchathub-upc8.onrender.com", {
+      const socket = io(VITE_SOCKET_URL, {
         query: {
           userId: authUser._id,
         },

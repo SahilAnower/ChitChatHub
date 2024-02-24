@@ -13,17 +13,20 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
       minLength: 6,
     },
     gender: {
       type: String,
-      required: true,
       enum: ["Male", "Female"],
     },
     profilePic: {
       type: String,
       default: "",
+    },
+    signupType: {
+      type: String,
+      default: "App",
+      enum: ["App", "Google"],
     },
   },
   { timestamps: true }

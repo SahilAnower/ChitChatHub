@@ -16,7 +16,7 @@ export const SocketContextProvider = ({ children }) => {
 
   useEffect(() => {
     if (authUser) {
-      const socket = io(VITE_SOCKET_URL, {
+      const socket = io("https://chitchathub-upc8.onrender.com", {
         query: {
           userId: authUser._id,
         },

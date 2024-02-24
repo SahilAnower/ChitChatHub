@@ -1,12 +1,27 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import useLogin from "../../hooks/useLogin";
+import { FcGoogle } from "react-icons/fc";
+import { useGoogleLogin } from "@react-oauth/google";
+import useGoogleLoginHook from "../../hooks/useGoogleLogin";
 
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const { loading, login } = useLogin();
+  const { loading: googleLoading, googleLoginFn } = useGoogleLoginHook();
+
+  const googleLogin = useGoogleLogin({
+    onSuccess: (codeResponse) => handleGoogleLogin(codeResponse),
+    onError: (error) => console.log("Login Failed:", error),
+  });
+
+  const handleGoogleLogin = async (codeResponse) => {
+    // setInputs({...inputs, googleAccessToken: codeResponse?.access_token})
+    const googleAccessToken = codeResponse?.access_token;
+    await googleLoginFn(googleAccessToken);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,11 +72,30 @@ const Login = () => {
             {"Don't"} have an account?
           </Link>
           <div>
-            <button className="btn btn-block btn-sm mt-2" disabled={loading}>
+            <button
+              type="submit"
+              className="btn btn-block btn-sm mt-2"
+              disabled={loading}
+            >
               {loading ? (
                 <span className="loading loading-spinner"></span>
               ) : (
                 "Log in"
+              )}
+            </button>
+          </div>
+          <div>
+            <button
+              type="button"
+              onClick={googleLogin}
+              className="btn btn-block btn-sm mt-2"
+              disabled={googleLoading}
+            >
+              <FcGoogle />
+              {googleLoading ? (
+                <span className="loading loading-spinner"></span>
+              ) : (
+                "Log in with Google"
               )}
             </button>
           </div>

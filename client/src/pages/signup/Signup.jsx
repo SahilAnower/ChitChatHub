@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import GenderCheckBox from "./GenderCheckBox";
 import { Link } from "react-router-dom";
 import useSignup from "../../hooks/useSignup";
+import { FcGoogle } from "react-icons/fc";
+import { useGoogleLogin } from "@react-oauth/google";
+import useGoogleSignup from "../../hooks/useGoogleSignup";
 
 const Signup = () => {
   const [inputs, setInputs] = useState({
@@ -13,6 +16,7 @@ const Signup = () => {
   });
 
   const { loading, signup } = useSignup();
+  const { loading: googleLoading, googleSignup } = useGoogleSignup();
 
   const handleCheckBoxChange = (gender) => {
     setInputs({ ...inputs, gender });
@@ -22,6 +26,17 @@ const Signup = () => {
     e.preventDefault();
     // console.log(inputs);
     await signup(inputs);
+  };
+
+  const googleLogin = useGoogleLogin({
+    onSuccess: (codeResponse) => handleGoogleSignup(codeResponse),
+    onError: (error) => console.log("Login Failed:", error),
+  });
+
+  const handleGoogleSignup = async (codeResponse) => {
+    // setInputs({...inputs, googleAccessToken: codeResponse?.access_token})
+    const googleAccessToken = codeResponse?.access_token;
+    await googleSignup(googleAccessToken);
   };
 
   return (
@@ -112,11 +127,31 @@ const Signup = () => {
           </Link>
 
           <div>
-            <button className="btn btn-block btn-sm mt-2" disabled={loading}>
+            <button
+              type="submit"
+              className="btn btn-block btn-sm mt-2"
+              disabled={loading}
+            >
               {loading ? (
                 <span className="loading loading-spinner"></span>
               ) : (
                 "Sign up"
+              )}
+            </button>
+          </div>
+
+          <div>
+            <button
+              type="button"
+              onClick={googleLogin}
+              className="btn btn-block btn-sm mt-2"
+              disabled={googleLoading}
+            >
+              <FcGoogle />
+              {googleLoading ? (
+                <span className="loading loading-spinner"></span>
+              ) : (
+                "Sign up with Google"
               )}
             </button>
           </div>

@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema(
       default: "App",
       enum: ["App", "Google"],
     },
+    lastSeen: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

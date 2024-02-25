@@ -4,6 +4,9 @@ import MessageInput from "./MessageInput";
 import { TiMessages } from "react-icons/ti";
 import useConversation from "../../zustand/useConversation";
 import { useAuthContext } from "../../context/AuthContext";
+import { useSocketContext } from "../../context/SocketContext";
+import { formattedLastSeen } from "../../utils/formattedLastSeen";
+import { MdOnlinePrediction } from "react-icons/md";
 
 const MessageContainer = () => {
   const { selectedConversation, setSelectedConversation } = useConversation();
@@ -13,6 +16,9 @@ const MessageContainer = () => {
     return () => setSelectedConversation(null);
   }, []);
 
+  const { onlineUsers } = useSocketContext();
+  const isOnline = onlineUsers.includes(selectedConversation?._id);
+
   return (
     <div className="md:min-w-[450px] flex flex-col">
       {!selectedConversation ? (
@@ -20,11 +26,30 @@ const MessageContainer = () => {
       ) : (
         <>
           {/* HEADER */}
-          <div className="bg-yellow-500 px-4 py-2 mb-2">
-            <span className="label-text">To:</span>{" "}
-            <span className="text-yellow-700 font-bold">
-              {selectedConversation.fullName}
-            </span>
+          <div className="bg-yellow-500 px-4 py-2 mb-2 flex justify-between">
+            <div>
+              <span className="label-text">To:</span>{" "}
+              <span className="text-yellow-700 font-bold">
+                {selectedConversation?.fullName}
+              </span>
+            </div>
+            {!isOnline && selectedConversation.lastSeen && (
+              <div>
+                <span className="text-yellow-700 font-bold text-xs">
+                  {formattedLastSeen(selectedConversation?.lastSeen)}
+                </span>
+              </div>
+            )}
+            {isOnline && (
+              <div className="flex items-center justify-end">
+                <span className="text-yellow-700 font-bold text-xs flex justify-end gap-2 items-center">
+                  <span>
+                    <MdOnlinePrediction className="text-green-700" />
+                  </span>
+                  <span>Online</span>
+                </span>
+              </div>
+            )}
           </div>
 
           <Messages />

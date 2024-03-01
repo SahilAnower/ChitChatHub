@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)) , url("/background.jpg");
+  background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), url("/background.jpg");
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
@@ -12,11 +12,11 @@ body {
 
 /* dark mode scroll-bar */
 
-::-webkit-scrollbar{
+::-webkit-scrollbar {
   width: 8px;
 }
 
-::-webkit-scrollbar-track{
+::-webkit-scrollbar-track {
   cursor: pointer !important;
   background: #555;
 }
@@ -60,4 +60,9 @@ body {
   60% {
     transform: translate3d(4px, 0, 0);
   }
+}
+
+::selection {
+  color: #F4538A;
+  box-shadow: inset;
 }

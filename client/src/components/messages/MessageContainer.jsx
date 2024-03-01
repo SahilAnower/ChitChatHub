@@ -10,13 +10,19 @@ import { MdOnlinePrediction } from "react-icons/md";
 import { IoSearchSharp } from "react-icons/io5";
 
 const MessageContainer = () => {
-  const { selectedConversation, setSelectedConversation } = useConversation();
-
-  const [isSearchActive, setIsSearchActive] = useState(false);
+  const {
+    selectedConversation,
+    setSelectedConversation,
+    isSearchMessageActive: isSearchActive,
+    setIsSearchMessageActive: setIsSearchActive,
+  } = useConversation();
 
   useEffect(() => {
     // cleanup function (unmounts)
-    return () => setSelectedConversation(null);
+    return () => {
+      setSelectedConversation(null);
+      setIsSearchActive(false);
+    };
   }, []);
 
   const { onlineUsers } = useSocketContext();

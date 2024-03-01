@@ -6,8 +6,7 @@ import toast from "react-hot-toast";
 
 const SearchInput = () => {
   const [search, setSearch] = useState("");
-  const { setSelectedConversation, setIsSearchMessageActive } =
-    useConversation();
+  const { setSelectedConversation } = useConversation();
   const { conversations } = useGetConversations();
 
   const handleSubmit = (e) => {
@@ -25,7 +24,6 @@ const SearchInput = () => {
 
     if (conversation) {
       setSelectedConversation(conversation);
-      setIsSearchMessageActive(false);
       setSearch("");
     } else toast.error("No such user found!");
   };

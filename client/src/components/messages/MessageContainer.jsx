@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Messages from "./Messages";
 import MessageInput from "./MessageInput";
 import { TiMessages } from "react-icons/ti";
@@ -7,13 +7,22 @@ import { useAuthContext } from "../../context/AuthContext";
 import { useSocketContext } from "../../context/SocketContext";
 import { formattedLastSeen } from "../../utils/formattedLastSeen";
 import { MdOnlinePrediction } from "react-icons/md";
+import { IoSearchSharp } from "react-icons/io5";
 
 const MessageContainer = () => {
-  const { selectedConversation, setSelectedConversation } = useConversation();
+  const {
+    selectedConversation,
+    setSelectedConversation,
+    isSearchMessageActive: isSearchActive,
+    setIsSearchMessageActive: setIsSearchActive,
+  } = useConversation();
 
   useEffect(() => {
     // cleanup function (unmounts)
-    return () => setSelectedConversation(null);
+    return () => {
+      setSelectedConversation(null);
+      setIsSearchActive(false);
+    };
   }, []);
 
   const { onlineUsers } = useSocketContext();
@@ -27,11 +36,19 @@ const MessageContainer = () => {
         <>
           {/* HEADER */}
           <div className="bg-yellow-500 px-4 py-2 mb-2 flex justify-between">
-            <div>
+            <div className="flex justify-center items-center gap-2">
               <span className="label-text">To:</span>{" "}
               <span className="text-yellow-700 font-bold">
                 {selectedConversation?.fullName}
               </span>
+              {!isSearchActive && (
+                <span className="flex gap-2">
+                  <IoSearchSharp
+                    className="text-white font-bold cursor-pointer size-5"
+                    onClick={() => setIsSearchActive(true)}
+                  />
+                </span>
+              )}
             </div>
             {!isOnline && selectedConversation.lastSeen && (
               <div>
@@ -52,7 +69,10 @@ const MessageContainer = () => {
             )}
           </div>
 
-          <Messages />
+          <Messages
+            isSearchActive={isSearchActive}
+            setIsSearchActive={setIsSearchActive}
+          />
           <MessageInput />
         </>
       )}

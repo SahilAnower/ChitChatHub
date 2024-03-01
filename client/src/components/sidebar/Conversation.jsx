@@ -3,11 +3,7 @@ import useConversation from "../../zustand/useConversation";
 import { useSocketContext } from "../../context/SocketContext";
 
 const Conversation = ({ conversation, lastIdx, emoji }) => {
-  const {
-    selectedConversation,
-    setSelectedConversation,
-    setIsSearchMessageActive,
-  } = useConversation();
+  const { selectedConversation, setSelectedConversation } = useConversation();
   const isSelected = selectedConversation?._id === conversation._id;
   const { onlineUsers } = useSocketContext();
   const isOnline = onlineUsers.includes(conversation._id);
@@ -17,10 +13,7 @@ const Conversation = ({ conversation, lastIdx, emoji }) => {
         className={`flex gap-2 items-center hover:bg-yellow-500 rounded p-2 py-1 cursor-pointer ${
           isSelected && "bg-yellow-500"
         }`}
-        onClick={() => {
-          setSelectedConversation(conversation);
-          setIsSearchMessageActive(false);
-        }}
+        onClick={() => setSelectedConversation(conversation)}
       >
         <div className={`avatar ${isOnline && "online"}`}>
           <div className="w-12 rounded-full">

@@ -61,8 +61,3 @@ body {
     transform: translate3d(4px, 0, 0);
   }
 }
-
-::selection {
-  color: #F4538A;
-  box-shadow: inset;
-}

@@ -73,7 +73,7 @@ const MessageContainer = () => {
             isSearchActive={isSearchActive}
             setIsSearchActive={setIsSearchActive}
           />
-          <MessageInput />
+          <MessageInput recieverId={selectedConversation?._id} />
         </>
       )}
     </div>

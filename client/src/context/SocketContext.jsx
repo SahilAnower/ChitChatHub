@@ -12,6 +12,7 @@ export const useSocketContext = () => {
 export const SocketContextProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [onlineUsers, setOnlineUsers] = useState([]);
+  const [typingMap, setTypingMap] = useState({});
   const { authUser } = useAuthContext();
 
   useEffect(() => {
@@ -27,6 +28,29 @@ export const SocketContextProvider = ({ children }) => {
         setOnlineUsers(users);
       });
 
+      socket.on("typing", (data) => {
+        // console.log("Inside client typing socket handler");
+        // console.log(data);
+        if (data && data.senderId) {
+          setTypingMap((prevTypingMap) => ({
+            ...prevTypingMap,
+            [data.senderId]: true,
+          }));
+        }
+      });
+
+      socket.on("typingEnd", (data) => {
+        // console.log("Inside client typingEnd socket handler");
+        // console.log(data);
+        // console.log(typingMap);
+        if (data && data.senderId) {
+          setTypingMap((prevTypingMap) => ({
+            ...prevTypingMap,
+            [data.senderId]: false,
+          }));
+        }
+      });
+
       return () => socket.close();
     } else {
       if (socket) {
@@ -37,7 +61,7 @@ export const SocketContextProvider = ({ children }) => {
   }, [authUser]);
 
   return (
-    <SocketContext.Provider value={{ socket, onlineUsers }}>
+    <SocketContext.Provider value={{ socket, onlineUsers, typingMap }}>
       {children}
     </SocketContext.Provider>
   );

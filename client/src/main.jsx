@@ -7,15 +7,18 @@ import { AuthContextProvider } from "./context/AuthContext.jsx";
 import { SocketContextProvider } from "./context/SocketContext.jsx";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { VITE_GOOGLE_CLIENT_ID } from "./globals.js";
+import { ToastContextProvider } from "./context/ToastContext.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <GoogleOAuthProvider clientId="716886604204-l2m5ts7csiqurmua583nvpk4mjrcsknc.apps.googleusercontent.com">
       <BrowserRouter>
         <AuthContextProvider>
-          <SocketContextProvider>
-            <App />
-          </SocketContextProvider>
+          <ToastContextProvider>
+            <SocketContextProvider>
+              <App />
+            </SocketContextProvider>
+          </ToastContextProvider>
         </AuthContextProvider>
       </BrowserRouter>
     </GoogleOAuthProvider>

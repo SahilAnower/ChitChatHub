@@ -29,7 +29,7 @@ io.on("connection", (socket) => {
     userSocketMap[userId] = socket.id;
   }
 
-  io.emit("getOnlineUsers", Object.keys(userSocketMap));
+  io.emit("getOnlineUsers", Object.keys(userSocketMap)); // get online users from the map
 
   socket.on("typing", (data) => {
     // console.log("Inside typing socket server");
@@ -65,6 +65,30 @@ io.on("connection", (socket) => {
         senderId: userId,
       });
     }
+  });
+
+  // for video-calling facility
+
+  socket.on("videoJoin", (data) => {
+    const { recieverId } = data;
+    const recieverSocketId = getReceiverSocketId(recieverId);
+    if (!recieverSocketId) {
+      return;
+    }
+    io.to(recieverSocketId).emit("videoJoinRequest", {
+      senderId: userId,
+    });
+  });
+
+  socket.on("videoCancel", (data) => {
+    const { recieverId } = data;
+    const recieverSocketId = getReceiverSocketId(recieverId);
+    if (!recieverSocketId) {
+      return;
+    }
+    io.to(recieverSocketId).emit("videoCancel", {
+      senderId: userId,
+    });
   });
 
   socket.on("disconnect", async () => {

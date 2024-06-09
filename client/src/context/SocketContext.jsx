@@ -26,6 +26,7 @@ export const SocketContextProvider = ({ children }) => {
     senderId: null,
     calling: false,
   });
+  const [videoRemoteSocketId, setVideoRemoteSocketId] = useState(null);
   const { authUser } = useAuthContext();
   const { videoCallOutgoingRequestId, setVideoCallRequestingId } =
     useToastContext();
@@ -106,6 +107,9 @@ export const SocketContextProvider = ({ children }) => {
             },
           });
           setVideoCallRequestingId(null);
+          if (data.remoteSocketId) {
+            setVideoRemoteSocketId(data.remoteSocketId);
+          }
         }
       });
 
@@ -154,6 +158,7 @@ export const SocketContextProvider = ({ children }) => {
         typingMap,
         isVideoCallRequesting,
         setIsVideoCallRequesting,
+        videoRemoteSocketId,
       }}
     >
       {children}

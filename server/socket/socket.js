@@ -18,7 +18,12 @@ export const getSocketIdFromUserId = (userId) => {
   return userSocketMap[userId];
 };
 
+export const getSocketFromSocketId = (socketId) => {
+  return socketIdToSocketMap[socketId];
+};
+
 const userSocketMap = {}; // {userId: socketId}
+const socketIdToSocketMap = {}; // {socketId: socket}
 
 io.on("connection", (socket) => {
   console.log("a user connected", socket.id);
@@ -27,6 +32,10 @@ io.on("connection", (socket) => {
 
   if (userId != undefined) {
     userSocketMap[userId] = socket.id;
+  }
+
+  if (socket && socket.id) {
+    socketIdToSocketMap[socket.id] = socket;
   }
 
   io.emit("getOnlineUsers", Object.keys(userSocketMap)); // get online users from the map
@@ -81,11 +90,17 @@ io.on("connection", (socket) => {
   });
 
   socket.on("videoConnect", (data) => {
-    const { senderId, recieverId } = data;
+    const { senderId, recieverId, roomId } = data;
     const senderSocketId = getSocketIdFromUserId(senderId);
     const recieverSocketId = getSocketIdFromUserId(recieverId);
-    io.to(senderSocketId).emit("roomJoined", data);
-    io.to(recieverSocketId).emit("roomJoined", data);
+    io.to(senderSocketId).emit("roomJoined", {
+      remoteSocketId: recieverSocketId,
+      roomId,
+    });
+    io.to(recieverSocketId).emit("roomJoined", {
+      remoteSocketId: senderSocketId,
+      roomId,
+    });
   });
 
   socket.on("videoCancel", (data) => {
@@ -97,6 +112,28 @@ io.on("connection", (socket) => {
     io.to(recieverSocketId).emit("videoCancel", {
       senderId: userId,
     });
+  });
+
+  socket.on("user:call", ({ to, offer }) => {
+    console.log({ to, offer });
+    io.to(to).emit("incomming:call", { from: socket.id, offer });
+  });
+
+  socket.on("call:accepted", ({ to, ans }) => {
+    console.log({ to, ans });
+    io.to(to).emit("call:accepted", { from: socket.id, ans });
+  });
+
+  socket.on("peer:nego:needed", ({ to, offer }) => {
+    console.log("peer:nego:needed", offer);
+    console.log({ to, offer });
+    io.to(to).emit("peer:nego:needed", { from: socket.id, offer });
+  });
+
+  socket.on("peer:nego:done", ({ to, ans }) => {
+    console.log({ to, ans });
+    console.log("peer:nego:done", ans);
+    io.to(to).emit("peer:nego:final", { from: socket.id, ans });
   });
 
   socket.on("disconnect", async () => {

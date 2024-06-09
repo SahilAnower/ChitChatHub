@@ -14,8 +14,8 @@ const io = new Server(server, {
   },
 });
 
-export const getReceiverSocketId = (receiverId) => {
-  return userSocketMap[receiverId];
+export const getSocketIdFromUserId = (userId) => {
+  return userSocketMap[userId];
 };
 
 const userSocketMap = {}; // {userId: socketId}
@@ -38,7 +38,7 @@ io.on("connection", (socket) => {
       return;
     }
     const { recieverId } = data;
-    const recieverSocketId = getReceiverSocketId(recieverId);
+    const recieverSocketId = getSocketIdFromUserId(recieverId);
     if (!recieverSocketId) {
       return;
     }
@@ -56,7 +56,7 @@ io.on("connection", (socket) => {
       return;
     }
     const { recieverId } = data;
-    const recieverSocketId = getReceiverSocketId(recieverId);
+    const recieverSocketId = getSocketIdFromUserId(recieverId);
     if (!recieverSocketId) {
       return;
     }
@@ -71,7 +71,7 @@ io.on("connection", (socket) => {
 
   socket.on("videoJoin", (data) => {
     const { recieverId } = data;
-    const recieverSocketId = getReceiverSocketId(recieverId);
+    const recieverSocketId = getSocketIdFromUserId(recieverId);
     if (!recieverSocketId) {
       return;
     }
@@ -80,9 +80,17 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on("videoConnect", (data) => {
+    const { senderId, recieverId } = data;
+    const senderSocketId = getSocketIdFromUserId(senderId);
+    const recieverSocketId = getSocketIdFromUserId(recieverId);
+    io.to(senderSocketId).emit("roomJoined", data);
+    io.to(recieverSocketId).emit("roomJoined", data);
+  });
+
   socket.on("videoCancel", (data) => {
     const { recieverId } = data;
-    const recieverSocketId = getReceiverSocketId(recieverId);
+    const recieverSocketId = getSocketIdFromUserId(recieverId);
     if (!recieverSocketId) {
       return;
     }

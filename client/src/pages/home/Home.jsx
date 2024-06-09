@@ -21,12 +21,17 @@ const Home = () => {
     ]
   );
 
+  console.log("senderId, receiverId");
+
   return (
     <div className="flex sm:h-[450px] md:h-[550px] rounded-lg overflow-hidden bg-gray-400 bg-clip-padding backdrop-filter backdrop-blur-lg bg-opacity-0">
       <Sidebar />
       <MessageContainer />
       {isVideoCallIncoming && (
-        <VideoCallRequest senderId={isVideoCallRequesting.senderId} />
+        <VideoCallRequest
+          senderId={isVideoCallRequesting.senderId}
+          recieverId={authUser?._id}
+        />
       )}
     </div>
   );

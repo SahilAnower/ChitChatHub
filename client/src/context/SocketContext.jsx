@@ -1,9 +1,16 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { useAuthContext } from "./AuthContext";
 import io from "socket.io-client";
 import { VITE_SOCKET_URL } from "../globals";
 import { useToastContext } from "./ToastContext";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 export const SocketContext = createContext();
 
@@ -22,6 +29,16 @@ export const SocketContextProvider = ({ children }) => {
   const { authUser } = useAuthContext();
   const { videoCallOutgoingRequestId, setVideoCallRequestingId } =
     useToastContext();
+
+  const navigate = useNavigate(); // Add this line
+
+  const handleJoinRoom = useCallback(
+    (data) => {
+      const { roomId } = data;
+      navigate(`/room/${roomId}`);
+    },
+    [navigate]
+  );
 
   useEffect(() => {
     if (authUser) {
@@ -71,6 +88,27 @@ export const SocketContextProvider = ({ children }) => {
         }
       });
 
+      socket.on("roomJoined", (data) => {
+        if (data && data.roomId) {
+          // todo: navigate to this particular roomId room for both users
+          handleJoinRoom(data);
+          toast.success(`Room - ${data.roomId} joined!`, {
+            id: videoCallOutgoingRequestId,
+            position: "top-right", // Position of the toast
+            style: {
+              background: "#333", // Background color
+              color: "#fff", // Text color
+            },
+            icon: "🎥",
+            iconTheme: {
+              primary: "#fff", // Icon color
+              secondary: "#333", // Icon background color
+            },
+          });
+          setVideoCallRequestingId(null);
+        }
+      });
+
       socket.on("videoCancel", (data) => {
         if (data && data.senderId) {
           // ----option 1-----
@@ -97,6 +135,7 @@ export const SocketContextProvider = ({ children }) => {
       return () => {
         socket.off("videoJoinRequest");
         socket.off("videoCancel");
+        socket.off("roomJoined");
         socket.close();
       };
     } else {

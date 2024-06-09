@@ -6,8 +6,9 @@ import { useSocketContext } from "../../context/SocketContext";
 import { AuthContext } from "../../context/AuthContext";
 import useConversation from "../../zustand/useConversation";
 import { useToastContext } from "../../context/ToastContext";
+import { v4 as uuidv4 } from "uuid";
 
-const VideoCallRequest = ({ senderId }) => {
+const VideoCallRequest = ({ senderId, recieverId }) => {
   // // todo: 1. get sender details from senderId
   // todo: 2. onAccept function
   // // todo: 3. onReject function
@@ -21,7 +22,7 @@ const VideoCallRequest = ({ senderId }) => {
   }, [conversations, senderId]);
 
   const onReject = () => {
-    // todo: send socket event of call rejected to the other user
+    // // todo: send socket event of call rejected to the other user
     socket.emit("videoCancel", {
       recieverId: senderId,
     });
@@ -31,7 +32,19 @@ const VideoCallRequest = ({ senderId }) => {
     }));
   };
 
-  const onAccept = () => {};
+  const onAccept = () => {
+    // todo: send room join event for both the accepting and sending site
+    const randomRoomId = uuidv4();
+    socket.emit("videoConnect", {
+      senderId,
+      recieverId,
+      roomId: randomRoomId,
+    });
+    setIsVideoCallRequesting((prev) => ({
+      ...prev,
+      calling: false,
+    }));
+  };
 
   return (
     <div className="video-call-request fixed top-0 left-0 w-full h-full bg-yellow-500 bg-opacity-50 flex justify-center items-center z-50">

@@ -159,6 +159,7 @@ export const SocketContextProvider = ({ children }) => {
         isVideoCallRequesting,
         setIsVideoCallRequesting,
         videoRemoteSocketId,
+        setVideoRemoteSocketId,
       }}
     >
       {children}

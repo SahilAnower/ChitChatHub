@@ -6,7 +6,8 @@ import { useSocketContext } from "../../context/SocketContext";
 const Room = () => {
   const [myStream, setMyStream] = useState();
   const [remoteStream, setRemoteStream] = useState();
-  const { socket, videoRemoteSocketId } = useSocketContext();
+  const { socket, videoRemoteSocketId, setVideoRemoteSocketId } =
+    useSocketContext();
 
   const handleCallUser = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -20,7 +21,7 @@ const Room = () => {
 
   const handleIncommingCall = useCallback(
     async ({ from, offer }) => {
-      // setVideoRemoteSocketId(from);
+      setVideoRemoteSocketId(from);
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
         video: true,
@@ -103,36 +104,62 @@ const Room = () => {
   ]);
 
   return (
-    <div>
-      <div>
-        <h1>Room Page</h1>
-        <h4>{videoRemoteSocketId ? "Connected" : "No one in room"}</h4>
-        {myStream && <button onClick={sendStreams}>Send Stream</button>}
-        {videoRemoteSocketId && <button onClick={handleCallUser}>CALL</button>}
-        {myStream && (
-          <>
-            <h1>My Stream</h1>
-            <ReactPlayer
-              playing
-              muted
-              height="100px"
-              width="200px"
-              url={myStream}
-            />
-          </>
-        )}
-        {remoteStream && (
-          <>
-            <h1>Remote Stream</h1>
-            <ReactPlayer
-              playing
-              muted
-              height="100px"
-              width="200px"
-              url={remoteStream}
-            />
-          </>
-        )}
+    <div className="flex flex-col items-center justify-center overflow-auto bg-gray-400 backdrop-filter backdrop-blur-lg bg-opacity-0 p-8">
+      <div className="w-full max-w-4xl mt-10">
+        <h1 className="text-4xl font-bold mb-6 text-yellow-300 text-center">
+          Room Page
+        </h1>
+        <h4 className="text-xl mb-6 text-yellow-300 text-center">
+          {videoRemoteSocketId ? "Connected" : "No one in room"}
+        </h4>
+        <div className="flex justify-center gap-6 mb-6">
+          {myStream && (
+            <button
+              className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-6 rounded"
+              onClick={sendStreams}
+            >
+              Send Stream
+            </button>
+          )}
+          {videoRemoteSocketId && (
+            <button
+              className="bg-white hover:bg-slate-300 text-yellow-500 font-bold py-2 px-6 rounded"
+              onClick={handleCallUser}
+            >
+              CALL
+            </button>
+          )}
+        </div>
+        <div className="flex flex-col gap-6 items-center w-full">
+          {myStream && (
+            <>
+              <h1 className="text-2xl font-bold text-yellow-300">My Stream</h1>
+              <ReactPlayer
+                playing
+                muted
+                className="rounded-lg border border-gray-700"
+                width="100%"
+                height="300px"
+                url={myStream}
+              />
+            </>
+          )}
+          {remoteStream && (
+            <>
+              <h1 className="text-2xl font-bold text-yellow-300">
+                Remote Stream
+              </h1>
+              <ReactPlayer
+                playing
+                muted
+                className="rounded-lg border border-gray-700"
+                width="100%"
+                height="300px"
+                url={remoteStream}
+              />
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

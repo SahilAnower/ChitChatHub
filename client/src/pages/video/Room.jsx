@@ -4,13 +4,22 @@ import peer from "../../services/PeerService";
 import { useSocketContext } from "../../context/SocketContext";
 import { useAuthContext } from "../../context/AuthContext";
 import { FaVideo, FaPhone, FaTimes } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const Room = () => {
   const [myStream, setMyStream] = useState();
   const [remoteStream, setRemoteStream] = useState();
-  const { socket, videoRemoteSocketId, setVideoRemoteSocketId, videoCallerId } =
-    useSocketContext();
+  const {
+    socket,
+    videoRemoteSocketId,
+    setVideoRemoteSocketId,
+    videoCallerId,
+    videoRecieverId,
+    setVideoCallerId,
+    setVideoRecieverId,
+  } = useSocketContext();
   const { authUser } = useAuthContext();
+  const navigate = useNavigate();
 
   const [isCallButtonEnabled, setIsCallButtonEnabled] = useState(
     videoRemoteSocketId && authUser?._id === videoCallerId
@@ -97,7 +106,12 @@ const Room = () => {
     await peer.setLocalDescription(ans);
   }, []);
 
-  const handleRejectCall = () => {};
+  const handleRejectCallRequest = () => {
+    socket.emit("call:reject", {
+      senderId: videoCallerId,
+      recieverId: videoRecieverId,
+    });
+  };
 
   useEffect(() => {
     peer.peer.addEventListener("track", async (ev) => {
@@ -107,6 +121,19 @@ const Room = () => {
     });
   }, []);
 
+  const handleCallReject = () => {
+    if (myStream) {
+      myStream.getTracks().forEach((track) => track.stop());
+    }
+
+    setVideoRemoteSocketId(null);
+    setMyStream(null);
+    setRemoteStream(null);
+    setVideoCallerId(null);
+    setVideoRecieverId(null);
+    navigate("/");
+  };
+
   console.log("remoteStream: ", remoteStream);
 
   useEffect(() => {
@@ -114,6 +141,7 @@ const Room = () => {
     socket.on("call:accepted", handleCallAccepted);
     socket.on("peer:nego:needed", handleNegoNeedIncomming);
     socket.on("peer:nego:final", handleNegoNeedFinal);
+    socket.on("call:reject", handleCallReject);
 
     return () => {
       socket.off("incomming:call", handleIncommingCall);
@@ -189,15 +217,13 @@ const Room = () => {
           )}
         </div>
         <div className="flex justify-center gap-6 mb-6">
-          {myStream && remoteStream && (
-            <button
-              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-6 rounded flex justify-center items-center gap-3"
-              onClick={handleRejectCall}
-            >
-              <FaTimes />
-              REJECT
-            </button>
-          )}
+          <button
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-6 rounded flex justify-center items-center gap-3"
+            onClick={handleRejectCallRequest}
+          >
+            <FaTimes />
+            {myStream && remoteStream ? "END CALL" : "ABANDON"}
+          </button>
         </div>
       </div>
     </div>

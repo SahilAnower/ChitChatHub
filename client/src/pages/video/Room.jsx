@@ -3,6 +3,7 @@ import ReactPlayer from "react-player";
 import peer from "../../services/PeerService";
 import { useSocketContext } from "../../context/SocketContext";
 import { useAuthContext } from "../../context/AuthContext";
+import { FaVideo, FaPhone, FaTimes } from "react-icons/fa";
 
 const Room = () => {
   const [myStream, setMyStream] = useState();
@@ -96,6 +97,8 @@ const Room = () => {
     await peer.setLocalDescription(ans);
   }, []);
 
+  const handleRejectCall = () => {};
+
   useEffect(() => {
     peer.peer.addEventListener("track", async (ev) => {
       const remoteStream = ev.streams;
@@ -138,22 +141,24 @@ const Room = () => {
         <div className="flex justify-center gap-6 mb-6">
           {isSendStreamButtonEnabled && (
             <button
-              className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-6 rounded"
+              className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-6 rounded flex justify-center items-center gap-3"
               onClick={handleSendStream}
             >
+              <FaVideo />
               Send Stream
             </button>
           )}
           {isCallButtonEnabled && (
             <button
-              className="bg-white hover:bg-slate-300 text-yellow-500 font-bold py-2 px-6 rounded"
+              className="bg-white hover:bg-slate-300 text-yellow-500 font-bold py-2 px-6 rounded flex justify-center items-center gap-3"
               onClick={handleCallUser}
             >
+              <FaPhone />
               CALL
             </button>
           )}
         </div>
-        <div className="flex flex-col gap-6 items-center w-full">
+        <div className="flex flex-col gap-6 items-center w-full mb-6">
           {myStream && (
             <>
               <h1 className="text-2xl font-bold text-yellow-300">My Stream</h1>
@@ -181,6 +186,17 @@ const Room = () => {
                 url={remoteStream}
               />
             </>
+          )}
+        </div>
+        <div className="flex justify-center gap-6 mb-6">
+          {myStream && remoteStream && (
+            <button
+              className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-6 rounded flex justify-center items-center gap-3"
+              onClick={handleRejectCall}
+            >
+              <FaTimes />
+              REJECT
+            </button>
           )}
         </div>
       </div>

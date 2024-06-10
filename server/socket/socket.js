@@ -140,6 +140,13 @@ io.on("connection", (socket) => {
     io.to(to).emit("peer:nego:final", { from: socket.id, ans });
   });
 
+  socket.on("call:reject", ({ senderId, recieverId }) => {
+    const senderSocketId = userSocketMap[senderId];
+    const recieverSocketId = userSocketMap[recieverId];
+    io.to(senderSocketId).emit("call:reject");
+    io.to(recieverSocketId).emit("call:reject");
+  });
+
   socket.on("disconnect", async () => {
     console.log("user disconnected", socket.id);
     delete userSocketMap[userId];

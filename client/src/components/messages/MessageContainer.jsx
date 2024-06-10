@@ -20,6 +20,8 @@ const MessageContainer = () => {
     setIsSearchMessageActive: setIsSearchActive,
   } = useConversation();
 
+  const { authUser } = useAuthContext();
+
   useEffect(() => {
     // cleanup function (unmounts)
     return () => {
@@ -29,11 +31,14 @@ const MessageContainer = () => {
   }, []);
 
   const { setVideoCallRequestingId } = useToastContext();
-  const { onlineUsers, socket } = useSocketContext();
+  const { onlineUsers, socket, setVideoCallerId, setVideoRecieverId } =
+    useSocketContext();
   const isOnline = onlineUsers.includes(selectedConversation?._id);
 
   const handleVideoCallRequest = async () => {
     const recieverId = selectedConversation?._id;
+    setVideoRecieverId(recieverId);
+    setVideoCallerId(authUser?._id);
     socket.emit("videoJoin", {
       recieverId: recieverId,
     });

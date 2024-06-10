@@ -2,12 +2,35 @@ import React, { useCallback, useEffect, useState } from "react";
 import ReactPlayer from "react-player";
 import peer from "../../services/PeerService";
 import { useSocketContext } from "../../context/SocketContext";
+import { useAuthContext } from "../../context/AuthContext";
+import { FaVideo, FaPhone, FaTimes } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const Room = () => {
   const [myStream, setMyStream] = useState();
   const [remoteStream, setRemoteStream] = useState();
-  const { socket, videoRemoteSocketId, setVideoRemoteSocketId } =
-    useSocketContext();
+  const {
+    socket,
+    videoRemoteSocketId,
+    setVideoRemoteSocketId,
+    videoCallerId,
+    videoRecieverId,
+    setVideoCallerId,
+    setVideoRecieverId,
+  } = useSocketContext();
+  const { authUser } = useAuthContext();
+  const navigate = useNavigate();
+
+  const [isCallButtonEnabled, setIsCallButtonEnabled] = useState(
+    videoRemoteSocketId && authUser?._id === videoCallerId
+  );
+  const [isSendStreamButtonEnabled, setIsSendStreamButtonEnabled] = useState(
+    myStream && authUser?._id !== videoCallerId
+  );
+
+  useEffect(() => {
+    setIsSendStreamButtonEnabled(myStream && authUser?._id !== videoCallerId);
+  }, [authUser?._id, videoRemoteSocketId, videoCallerId, myStream]);
 
   const handleCallUser = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -17,7 +40,10 @@ const Room = () => {
     const offer = await peer.getOffer();
     socket.emit("user:call", { to: videoRemoteSocketId, offer });
     setMyStream(stream);
-  }, [videoRemoteSocketId, socket]);
+    if (isCallButtonEnabled) {
+      setIsCallButtonEnabled(false);
+    }
+  }, [socket, videoRemoteSocketId, isCallButtonEnabled]);
 
   const handleIncommingCall = useCallback(
     async ({ from, offer }) => {
@@ -39,6 +65,13 @@ const Room = () => {
       peer.peer.addTrack(track, myStream);
     }
   }, [myStream]);
+
+  const handleSendStream = () => {
+    if (isSendStreamButtonEnabled) {
+      setIsSendStreamButtonEnabled(false);
+    }
+    sendStreams();
+  };
 
   const handleCallAccepted = useCallback(
     ({ from, ans }) => {
@@ -73,6 +106,13 @@ const Room = () => {
     await peer.setLocalDescription(ans);
   }, []);
 
+  const handleRejectCallRequest = () => {
+    socket.emit("call:reject", {
+      senderId: videoCallerId,
+      recieverId: videoRecieverId,
+    });
+  };
+
   useEffect(() => {
     peer.peer.addEventListener("track", async (ev) => {
       const remoteStream = ev.streams;
@@ -81,6 +121,19 @@ const Room = () => {
     });
   }, []);
 
+  const handleCallReject = () => {
+    if (myStream) {
+      myStream.getTracks().forEach((track) => track.stop());
+    }
+
+    setVideoRemoteSocketId(null);
+    setMyStream(null);
+    setRemoteStream(null);
+    setVideoCallerId(null);
+    setVideoRecieverId(null);
+    navigate("/");
+  };
+
   console.log("remoteStream: ", remoteStream);
 
   useEffect(() => {
@@ -88,6 +141,7 @@ const Room = () => {
     socket.on("call:accepted", handleCallAccepted);
     socket.on("peer:nego:needed", handleNegoNeedIncomming);
     socket.on("peer:nego:final", handleNegoNeedFinal);
+    socket.on("call:reject", handleCallReject);
 
     return () => {
       socket.off("incomming:call", handleIncommingCall);
@@ -113,24 +167,26 @@ const Room = () => {
           {videoRemoteSocketId ? "Connected" : "No one in room"}
         </h4>
         <div className="flex justify-center gap-6 mb-6">
-          {myStream && (
+          {isSendStreamButtonEnabled && (
             <button
-              className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-6 rounded"
-              onClick={sendStreams}
+              className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-6 rounded flex justify-center items-center gap-3"
+              onClick={handleSendStream}
             >
+              <FaVideo />
               Send Stream
             </button>
           )}
-          {videoRemoteSocketId && (
+          {isCallButtonEnabled && (
             <button
-              className="bg-white hover:bg-slate-300 text-yellow-500 font-bold py-2 px-6 rounded"
+              className="bg-white hover:bg-slate-300 text-yellow-500 font-bold py-2 px-6 rounded flex justify-center items-center gap-3"
               onClick={handleCallUser}
             >
+              <FaPhone />
               CALL
             </button>
           )}
         </div>
-        <div className="flex flex-col gap-6 items-center w-full">
+        <div className="flex flex-col gap-6 items-center w-full mb-6">
           {myStream && (
             <>
               <h1 className="text-2xl font-bold text-yellow-300">My Stream</h1>
@@ -159,6 +215,15 @@ const Room = () => {
               />
             </>
           )}
+        </div>
+        <div className="flex justify-center gap-6 mb-6">
+          <button
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-6 rounded flex justify-center items-center gap-3"
+            onClick={handleRejectCallRequest}
+          >
+            <FaTimes />
+            {myStream && remoteStream ? "END CALL" : "ABANDON"}
+          </button>
         </div>
       </div>
     </div>

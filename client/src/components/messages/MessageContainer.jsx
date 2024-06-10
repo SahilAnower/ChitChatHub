@@ -7,7 +7,10 @@ import { useAuthContext } from "../../context/AuthContext";
 import { useSocketContext } from "../../context/SocketContext";
 import { formattedLastSeen } from "../../utils/formattedLastSeen";
 import { MdOnlinePrediction } from "react-icons/md";
+import { FaVideo } from "react-icons/fa";
 import { IoSearchSharp } from "react-icons/io5";
+import toast from "react-hot-toast";
+import { useToastContext } from "../../context/ToastContext";
 
 const MessageContainer = () => {
   const {
@@ -25,8 +28,29 @@ const MessageContainer = () => {
     };
   }, []);
 
-  const { onlineUsers } = useSocketContext();
+  const { setVideoCallRequestingId } = useToastContext();
+  const { onlineUsers, socket } = useSocketContext();
   const isOnline = onlineUsers.includes(selectedConversation?._id);
+
+  const handleVideoCallRequest = async () => {
+    const recieverId = selectedConversation?._id;
+    socket.emit("videoJoin", {
+      recieverId: recieverId,
+    });
+    const toastId = toast.loading("Call Ringing...", {
+      position: "top-right", // Position of the toast
+      style: {
+        background: "#333", // Background color
+        color: "#fff", // Text color
+      },
+      icon: "🎥",
+      iconTheme: {
+        primary: "#fff", // Icon color
+        secondary: "#333", // Icon background color
+      },
+    });
+    setVideoCallRequestingId(toastId);
+  };
 
   return (
     <div className="md:min-w-[450px] flex flex-col">
@@ -64,6 +88,19 @@ const MessageContainer = () => {
                     <MdOnlinePrediction className="text-green-700" />
                   </span>
                   <span>Online</span>
+                </span>
+              </div>
+            )}
+            {isOnline && (
+              <div className="flex items-center justify-end">
+                <span
+                  className="text-yellow-700 font-bold text-xs flex justify-end gap-2 items-center"
+                  onClick={handleVideoCallRequest}
+                >
+                  <span>
+                    <FaVideo className="text-green-700" />
+                  </span>
+                  <span>Video Call</span>
                 </span>
               </div>
             )}

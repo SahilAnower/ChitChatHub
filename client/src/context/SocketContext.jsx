@@ -27,6 +27,8 @@ export const SocketContextProvider = ({ children }) => {
     calling: false,
   });
   const [videoRemoteSocketId, setVideoRemoteSocketId] = useState(null);
+  const [videoCallerId, setVideoCallerId] = useState(null);
+  const [videoRecieverId, setVideoRecieverId] = useState(null);
   const { authUser } = useAuthContext();
   const { videoCallOutgoingRequestId, setVideoCallRequestingId } =
     useToastContext();
@@ -160,6 +162,10 @@ export const SocketContextProvider = ({ children }) => {
         setIsVideoCallRequesting,
         videoRemoteSocketId,
         setVideoRemoteSocketId,
+        videoCallerId,
+        setVideoCallerId,
+        videoRecieverId,
+        setVideoRecieverId,
       }}
     >
       {children}

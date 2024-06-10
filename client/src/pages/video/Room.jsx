@@ -2,12 +2,25 @@ import React, { useCallback, useEffect, useState } from "react";
 import ReactPlayer from "react-player";
 import peer from "../../services/PeerService";
 import { useSocketContext } from "../../context/SocketContext";
+import { useAuthContext } from "../../context/AuthContext";
 
 const Room = () => {
   const [myStream, setMyStream] = useState();
   const [remoteStream, setRemoteStream] = useState();
-  const { socket, videoRemoteSocketId, setVideoRemoteSocketId } =
+  const { socket, videoRemoteSocketId, setVideoRemoteSocketId, videoCallerId } =
     useSocketContext();
+  const { authUser } = useAuthContext();
+
+  const [isCallButtonEnabled, setIsCallButtonEnabled] = useState(
+    videoRemoteSocketId && authUser?._id === videoCallerId
+  );
+  const [isSendStreamButtonEnabled, setIsSendStreamButtonEnabled] = useState(
+    myStream && authUser?._id !== videoCallerId
+  );
+
+  useEffect(() => {
+    setIsSendStreamButtonEnabled(myStream && authUser?._id !== videoCallerId);
+  }, [authUser?._id, videoRemoteSocketId, videoCallerId, myStream]);
 
   const handleCallUser = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -17,7 +30,10 @@ const Room = () => {
     const offer = await peer.getOffer();
     socket.emit("user:call", { to: videoRemoteSocketId, offer });
     setMyStream(stream);
-  }, [videoRemoteSocketId, socket]);
+    if (isCallButtonEnabled) {
+      setIsCallButtonEnabled(false);
+    }
+  }, [socket, videoRemoteSocketId, isCallButtonEnabled]);
 
   const handleIncommingCall = useCallback(
     async ({ from, offer }) => {
@@ -39,6 +55,13 @@ const Room = () => {
       peer.peer.addTrack(track, myStream);
     }
   }, [myStream]);
+
+  const handleSendStream = () => {
+    if (isSendStreamButtonEnabled) {
+      setIsSendStreamButtonEnabled(false);
+    }
+    sendStreams();
+  };
 
   const handleCallAccepted = useCallback(
     ({ from, ans }) => {
@@ -113,15 +136,15 @@ const Room = () => {
           {videoRemoteSocketId ? "Connected" : "No one in room"}
         </h4>
         <div className="flex justify-center gap-6 mb-6">
-          {myStream && (
+          {isSendStreamButtonEnabled && (
             <button
               className="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-6 rounded"
-              onClick={sendStreams}
+              onClick={handleSendStream}
             >
               Send Stream
             </button>
           )}
-          {videoRemoteSocketId && (
+          {isCallButtonEnabled && (
             <button
               className="bg-white hover:bg-slate-300 text-yellow-500 font-bold py-2 px-6 rounded"
               onClick={handleCallUser}

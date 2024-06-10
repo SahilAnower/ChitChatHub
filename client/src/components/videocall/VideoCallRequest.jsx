@@ -13,7 +13,12 @@ const VideoCallRequest = ({ senderId, recieverId }) => {
   // todo: 2. onAccept function
   // // todo: 3. onReject function
   const { conversations } = useConversation();
-  const { socket, setIsVideoCallRequesting } = useSocketContext();
+  const {
+    socket,
+    setIsVideoCallRequesting,
+    setVideoCallerId,
+    setVideoRecieverId,
+  } = useSocketContext();
 
   const senderDetails = useMemo(() => {
     return conversations.filter(
@@ -35,6 +40,8 @@ const VideoCallRequest = ({ senderId, recieverId }) => {
   const onAccept = () => {
     // todo: send room join event for both the accepting and sending site
     const randomRoomId = uuidv4();
+    setVideoCallerId(senderId);
+    setVideoRecieverId(recieverId);
     socket.emit("videoConnect", {
       senderId,
       recieverId,

@@ -14,11 +14,16 @@ const io = new Server(server, {
   },
 });
 
-export const getReceiverSocketId = (receiverId) => {
-  return userSocketMap[receiverId];
+export const getSocketIdFromUserId = (userId) => {
+  return userSocketMap[userId];
+};
+
+export const getSocketFromSocketId = (socketId) => {
+  return socketIdToSocketMap[socketId];
 };
 
 const userSocketMap = {}; // {userId: socketId}
+const socketIdToSocketMap = {}; // {socketId: socket}
 
 io.on("connection", (socket) => {
   console.log("a user connected", socket.id);
@@ -29,7 +34,11 @@ io.on("connection", (socket) => {
     userSocketMap[userId] = socket.id;
   }
 
-  io.emit("getOnlineUsers", Object.keys(userSocketMap));
+  if (socket && socket.id) {
+    socketIdToSocketMap[socket.id] = socket;
+  }
+
+  io.emit("getOnlineUsers", Object.keys(userSocketMap)); // get online users from the map
 
   socket.on("typing", (data) => {
     // console.log("Inside typing socket server");
@@ -38,7 +47,7 @@ io.on("connection", (socket) => {
       return;
     }
     const { recieverId } = data;
-    const recieverSocketId = getReceiverSocketId(recieverId);
+    const recieverSocketId = getSocketIdFromUserId(recieverId);
     if (!recieverSocketId) {
       return;
     }
@@ -56,7 +65,7 @@ io.on("connection", (socket) => {
       return;
     }
     const { recieverId } = data;
-    const recieverSocketId = getReceiverSocketId(recieverId);
+    const recieverSocketId = getSocketIdFromUserId(recieverId);
     if (!recieverSocketId) {
       return;
     }
@@ -65,6 +74,77 @@ io.on("connection", (socket) => {
         senderId: userId,
       });
     }
+  });
+
+  // for video-calling facility
+
+  socket.on("videoJoin", (data) => {
+    const { recieverId } = data;
+    const recieverSocketId = getSocketIdFromUserId(recieverId);
+    if (!recieverSocketId) {
+      return;
+    }
+    io.to(recieverSocketId).emit("videoJoinRequest", {
+      senderId: userId,
+    });
+  });
+
+  socket.on("videoConnect", (data) => {
+    const { senderId, recieverId, roomId } = data;
+    const senderSocketId = getSocketIdFromUserId(senderId);
+    const recieverSocketId = getSocketIdFromUserId(recieverId);
+    io.to(senderSocketId).emit("roomJoined", {
+      remoteSocketId: recieverSocketId,
+      roomId,
+    });
+    io.to(recieverSocketId).emit("roomJoined", {
+      remoteSocketId: senderSocketId,
+      roomId,
+    });
+    const senderSocket = getSocketFromSocketId(senderSocketId);
+    const recieverSocket = getSocketFromSocketId(recieverSocketId);
+    senderSocket.join(roomId);
+    recieverSocket.join(roomId);
+  });
+
+  socket.on("videoCancel", (data) => {
+    const { recieverId } = data;
+    const recieverSocketId = getSocketIdFromUserId(recieverId);
+    if (!recieverSocketId) {
+      return;
+    }
+    io.to(recieverSocketId).emit("videoCancel", {
+      senderId: userId,
+    });
+  });
+
+  socket.on("user:call", ({ to, offer }) => {
+    // console.log({ to, offer });
+    io.to(to).emit("incomming:call", { from: socket.id, offer });
+  });
+
+  socket.on("call:accepted", ({ to, ans }) => {
+    // console.log({ to, ans });
+    io.to(to).emit("call:accepted", { from: socket.id, ans });
+  });
+
+  socket.on("peer:nego:needed", ({ to, offer }) => {
+    // console.log("peer:nego:needed", offer);
+    // console.log({ to, offer });
+    io.to(to).emit("peer:nego:needed", { from: socket.id, offer });
+  });
+
+  socket.on("peer:nego:done", ({ to, ans }) => {
+    // console.log({ to, ans });
+    // console.log("peer:nego:done", ans);
+    io.to(to).emit("peer:nego:final", { from: socket.id, ans });
+  });
+
+  socket.on("call:reject", ({ senderId, recieverId }) => {
+    const senderSocketId = userSocketMap[senderId];
+    const recieverSocketId = userSocketMap[recieverId];
+    io.to(senderSocketId).emit("call:reject");
+    io.to(recieverSocketId).emit("call:reject");
   });
 
   socket.on("disconnect", async () => {

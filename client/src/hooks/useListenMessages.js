@@ -11,6 +11,7 @@ const useListenMessages = () => {
     socket?.on("newMessage", (newMessage) => {
       newMessage.shouldShake = true;
       const sound = new Audio(notificationSound);
+      newMessage.status = "SEEN";
       setMessages([...messages, newMessage]);
       sound.play();
     });

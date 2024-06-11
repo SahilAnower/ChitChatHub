@@ -56,7 +56,21 @@ export const getMessages = async (req, res) => {
 
     const messages = conversation.messages;
 
-    res.status(200).json(messages);
+    await Message.updateMany(
+      {
+        _id: { $in: messages.map((msg) => msg._id) },
+        receiverId: senderId,
+        status: "DELIVERED",
+      },
+      { $set: { status: "SEEN" } }
+    );
+
+    // Re-fetch the conversation to get the updated messages
+    const updatedConversation = await Conversation.findOne({
+      participants: { $all: [senderId, userToChatId] },
+    }).populate("messages");
+
+    res.status(200).json(updatedConversation.messages);
   } catch (error) {
     console.error("Error in getMessages controller", error?.message);
   }

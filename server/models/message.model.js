@@ -16,6 +16,11 @@ const messageSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    status: {
+      type: String,
+      enum: ["DELIVERED"],
+      default: "DELIVERED",
+    },
   },
   {
     timestamps: true,

@@ -21,6 +21,7 @@ export const sendMessage = async (req, res) => {
       senderId: senderId,
       receiverId: receiverId,
       message: message,
+      status: "DELIVERED",
     });
 
     if (newMessage) {

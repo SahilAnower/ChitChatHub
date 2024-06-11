@@ -46,17 +46,17 @@ export const SocketContextProvider = ({ children }) => {
   useEffect(() => {
     if (authUser) {
       // ------ for production -------
-      // const socket = io("https://chitchathub-upc8.onrender.com", {
-      //   query: {
-      //     userId: authUser._id,
-      //   },
-      // });
-      // ------ for local --------
-      const socket = io("http://localhost:5000", {
+      const socket = io("https://chitchathub-upc8.onrender.com", {
         query: {
           userId: authUser._id,
         },
       });
+      // ------ for local --------
+      // const socket = io("http://localhost:5000", {
+      //   query: {
+      //     userId: authUser._id,
+      //   },
+      // });
       setSocket(socket);
 
       socket.on("getOnlineUsers", (users) => {

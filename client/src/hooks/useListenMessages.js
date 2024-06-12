@@ -13,9 +13,29 @@ const useListenMessages = () => {
       const sound = new Audio(notificationSound);
       newMessage.status = "SEEN";
       setMessages([...messages, newMessage]);
+      // // todo: set this newMessage as seen for other user through socket
+      setTimeout(() => {
+        socket.emit("newMessageSeen", { ...newMessage });
+      }, 2000);
       sound.play();
     });
-    return () => socket?.off("newMessage");
+
+    socket?.on("newMessageSeen", ({ messageId }) => {
+      const filteredMessages = messages.filter(
+        (eachMessage) => eachMessage?._id !== messageId
+      );
+      const messageToFind = messages.find(
+        (eachMessage) => eachMessage?._id === messageId
+      );
+      messageToFind.status = "SEEN";
+      setMessages([...filteredMessages, messageToFind]);
+      console.log("messages inside newMessageSeen: ", messages);
+    });
+
+    return () => {
+      socket?.off("newMessage");
+      socket?.off("newMessageSeen");
+    };
   }, [socket, messages, setMessages]);
 };
 

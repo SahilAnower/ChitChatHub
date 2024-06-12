@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import http from "http";
 import express from "express";
 import User from "../models/user.model.js";
+import Message from "../models/message.model.js";
 
 const app = express();
 
@@ -74,6 +75,30 @@ io.on("connection", (socket) => {
         senderId: userId,
       });
     }
+  });
+
+  // for message statuses functionality
+
+  socket.on("newMessageSeen", async ({ senderId, _id: messageId }) => {
+    // // todo: send event to the sender, that message has been seen
+    const senderSocketId = getSocketIdFromUserId(senderId);
+    if (senderSocketId) {
+      io.to(senderSocketId).emit("newMessageSeen", {
+        messageId,
+      });
+    }
+    // // todo: set the message in DB for status as seen
+    await Message.findOneAndUpdate(
+      {
+        _id: messageId,
+      },
+      {
+        status: "SEEN",
+      },
+      {
+        new: true,
+      }
+    );
   });
 
   // for video-calling facility

@@ -35,6 +35,12 @@ const Message = ({ message }) => {
       </div>
       <div className="chat-footer opacity-50 text-xs flex gap-1 items-center text-white font-bold">
         {formattedTime}
+        {isFromMe && (
+          <span className="ml-2">
+            {message.status === "DELIVERED" && "Delivered"}
+            {message.status === "SEEN" && "Seen"}
+          </span>
+        )}
       </div>
     </div>
   );

@@ -75,3 +75,20 @@ export const getMessages = async (req, res) => {
     console.error("Error in getMessages controller", error?.message);
   }
 };
+
+export const updateMessageSingle = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    const senderId = req.user._id;
+    const { message } = req.body;
+    const updatedMessage = await Message.findOneAndUpdate(
+      { _id: messageId },
+      { message: message },
+      { new: true }
+    );
+
+    res.status(200).json(updatedMessage);
+  } catch (error) {
+    console.error("Error in getMessages controller", error?.message);
+  }
+};

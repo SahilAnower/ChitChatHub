@@ -29,12 +29,19 @@ const useListenMessages = () => {
       );
       messageToFind.status = "SEEN";
       setMessages([...filteredMessages, messageToFind]);
-      console.log("messages inside newMessageSeen: ", messages);
+    });
+
+    socket?.on("editedMessage", (message) => {
+      const filteredMessages = messages.filter(
+        (eachMessage) => eachMessage?._id !== message?._id
+      );
+      setMessages([...filteredMessages, message]);
     });
 
     return () => {
       socket?.off("newMessage");
       socket?.off("newMessageSeen");
+      socket?.off("editedMessage");
     };
   }, [socket, messages, setMessages]);
 };

@@ -83,9 +83,16 @@ export const updateMessageSingle = async (req, res) => {
     const { message } = req.body;
     const updatedMessage = await Message.findOneAndUpdate(
       { _id: messageId },
-      { message: message },
+      { message: message, isEdited: true },
       { new: true }
     );
+
+    // todo: send socket event to receiver that message has been updated to update list in frontend
+
+    const receiverSocketId = getSocketIdFromUserId(updatedMessage?.receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("editedMessage", updatedMessage);
+    }
 
     res.status(200).json(updatedMessage);
   } catch (error) {

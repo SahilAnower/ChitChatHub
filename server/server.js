@@ -10,14 +10,17 @@ import userRoutes from "./routes/user.routes.js";
 import connectToMongoDB from "./db/mongoConnect.js";
 import { app, server } from "./socket/socket.js";
 
-const __dirname = path.resolve();
 
-// console.log(path.join(__dirname, "../client/dist"));
+import { nginxCurrentServer } from "./middlewares/nginxCurrentServer.js";
+
+const __dirname = path.resolve();
 
 dotenv.config();
 
 app.use(express.json());
 app.use(cookieParser());
+
+app.use(nginxCurrentServer);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
@@ -30,8 +33,11 @@ app.get("*", (req, res) => {
 });
 
 const port = process.env.PORT || 5000;
+const serverId = process.env.SERVER_ID;
 
 server.listen(port, () => {
   connectToMongoDB();
-  console.log(`Server up 🚀 and running on http://localhost:${port}`);
+  console.log(
+    `${serverId} - server up 🚀 and running on http://localhost:${port}`
+  );
 });

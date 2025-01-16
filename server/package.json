@@ -9,7 +9,9 @@
     "dev": "nodemon server.js",
     "build": "npm i && npm i --prefix ../client && npm run build --prefix ../client"
   },
-  "keywords": ["MIT"],
+  "keywords": [
+    "MIT"
+  ],
   "author": "SahilAnower",
   "license": "ISC",
   "dependencies": {
@@ -19,6 +21,7 @@
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.1.2",
+    "nodemon": "^3.1.9",
     "socket.io": "^4.7.4"
   }
 }

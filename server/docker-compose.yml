@@ -1,0 +1,50 @@
+version: '3'
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    build: 
+      context: ./nginx
+    depends_on:
+      - app1
+      - app2
+      - app3
+    extends:
+      file: common-config.yml
+      service: network-deploy-service
+  app1:
+    extends:
+      file: common-config.yml
+      service: app-servers-base-config
+    environment:
+      # - REDIS_URL=redis://redis:6379
+      - SERVER_ID=app1
+    # depends_on:
+    #   - redis
+  app2:
+    extends:
+      file: common-config.yml
+      service: app-servers-base-config
+    environment:
+      # - REDIS_URL=redis://redis:6379
+      - SERVER_ID=app2
+    # depends_on:
+    #   - redis
+  app3:
+    extends:
+      file: common-config.yml
+      service: app-servers-base-config
+    environment:
+      # - REDIS_URL=redis://redis:6379
+      - SERVER_ID=app3
+    # depends_on:
+    #   - redis
+  # redis:
+  #   image: redis
+  #   ports:
+  #     - "6379:6379"
+
+networks:
+  chitchathub:
+    driver: bridge

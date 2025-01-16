@@ -11,6 +11,8 @@ services:
       - PORT=5000
       - JWT_SECRET=sahil_chat_app_secret
       - MONGO_URI=mongodb+srv://sahilanower2:Jamesbond007@chat-app-cluster.zfgg4b4.mongodb.net/?retryWrites=true&w=majority
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
     volumes:
       - .:/usr/src/app
       - /usr/src/app/node_modules

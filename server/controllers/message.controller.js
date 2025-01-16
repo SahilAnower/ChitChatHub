@@ -1,9 +1,11 @@
 import Conversation from "../models/conversation.model.js";
 import Message from "../models/message.model.js";
+import UserServerMapping from "../models/userServerMapping.model.js";
 import { getSocketIdFromUserId, io } from "../socket/socket.js";
 
 export const sendMessage = async (req, res) => {
   try {
+    const redisPublisher = req.redisPublisher;
     const { message } = req.body;
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
@@ -15,7 +17,6 @@ export const sendMessage = async (req, res) => {
         participants: [senderId, receiverId],
       });
     }
-    // console.log(conversation);
 
     const newMessage = new Message({
       senderId: senderId,
@@ -32,7 +33,22 @@ export const sendMessage = async (req, res) => {
     // Socket io functionality here!
     const receiverSocketId = getSocketIdFromUserId(receiverId);
     if (receiverSocketId) {
+      // if connected with this server
       io.to(receiverSocketId).emit("newMessage", newMessage);
+    } else {
+      // see which server is connected with this user
+      const serverId = (
+        await UserServerMapping.findOne({
+          userId: receiverId,
+        })
+      )?.serverId;
+      if (serverId) {
+        // if currently online
+        redisPublisher.publish(
+          `message_channel_${serverId}`,
+          JSON.stringify(newMessage)
+        );
+      }
     }
 
     res.status(201).json(newMessage);

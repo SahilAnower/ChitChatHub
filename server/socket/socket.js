@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import http from "http";
 import express from "express";
 import User from "../models/user.model.js";
+import UserServerMapping from "../models/userServerMapping.model.js";
 
 const app = express();
 
@@ -26,6 +27,8 @@ const userSocketMap = {}; // {userId: socketId}
 const socketIdToSocketMap = {}; // {socketId: socket}
 
 io.on("connection", (socket) => {
+  const serverId = process.env.SERVER_ID;
+
   console.log("a user connected", socket.id);
 
   const userId = socket.handshake.query.userId;
@@ -37,6 +40,11 @@ io.on("connection", (socket) => {
   if (socket && socket.id) {
     socketIdToSocketMap[socket.id] = socket;
   }
+
+  UserServerMapping.create({
+    userId: userId,
+    serverId: serverId,
+  });
 
   io.emit("getOnlineUsers", Object.keys(userSocketMap)); // get online users from the map
 
@@ -155,6 +163,7 @@ io.on("connection", (socket) => {
       lastSeen: new Date(),
     });
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
+    await UserServerMapping.deleteOne({ userId: userId });
   });
 });
 

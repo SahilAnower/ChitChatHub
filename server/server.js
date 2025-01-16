@@ -1,5 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
+
+dotenv.config();
+
 import cookieParser from "cookie-parser";
 import path from "path";
 
@@ -10,12 +13,10 @@ import userRoutes from "./routes/user.routes.js";
 import connectToMongoDB from "./db/mongoConnect.js";
 import { app, server } from "./socket/socket.js";
 
-
+import redisInit from "./redis/redis.js";
 import { nginxCurrentServer } from "./middlewares/nginxCurrentServer.js";
 
 const __dirname = path.resolve();
-
-dotenv.config();
 
 app.use(express.json());
 app.use(cookieParser());
@@ -23,7 +24,17 @@ app.use(cookieParser());
 app.use(nginxCurrentServer);
 
 app.use("/api/auth", authRoutes);
-app.use("/api/messages", messageRoutes);
+
+const { redisPublisher } = redisInit();
+
+app.use(
+  "/api/messages",
+  (req, res, next) => {
+    req.redisPublisher = redisPublisher;
+    next();
+  },
+  messageRoutes
+);
 app.use("/api/users", userRoutes);
 
 app.use(express.static(path.join(__dirname, "../client/dist")));
